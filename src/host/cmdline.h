@@ -63,11 +63,9 @@ Notes:
 #include "readDataCooked.hpp"
 #include "popup.h"
 
-class CommandLine
+class CommandLine final
 {
 public:
-    ~CommandLine();
-
     static CommandLine& Instance();
 
     static bool IsEditLineEmpty();
@@ -75,20 +73,11 @@ public:
     void Show();
     bool IsVisible() const noexcept;
 
-    [[nodiscard]] NTSTATUS ProcessCommandLine(COOKED_READ_DATA& cookedReadData,
-                                              _In_ WCHAR wch,
-                                              const DWORD dwKeyState);
-
+    [[nodiscard]] NTSTATUS ProcessCommandLine(COOKED_READ_DATA& cookedReadData, _In_ WCHAR wch, const DWORD dwKeyState);
     [[nodiscard]] HRESULT StartCommandNumberPopup(COOKED_READ_DATA& cookedReadData);
-
-    bool HasPopup() const noexcept;
-    Popup& GetPopup() const;
 
     void EndCurrentPopup();
     void EndAllPopups();
-
-    void DeletePromptAfterCursor(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point DeleteFromRightOfCursor(COOKED_READ_DATA& cookedReadData) noexcept;
 
 protected:
     CommandLine();
@@ -97,38 +86,13 @@ protected:
     CommandLine(const CommandLine&) = delete;
     CommandLine& operator=(const CommandLine&) = delete;
 
-    [[nodiscard]] NTSTATUS _startCommandListPopup(COOKED_READ_DATA& cookedReadData);
-    [[nodiscard]] NTSTATUS _startCopyFromCharPopup(COOKED_READ_DATA& cookedReadData);
-    [[nodiscard]] NTSTATUS _startCopyToCharPopup(COOKED_READ_DATA& cookedReadData);
-
-    void _processHistoryCycling(COOKED_READ_DATA& cookedReadData, const CommandHistory::SearchDirection searchDirection);
-    void _setPromptToOldestCommand(COOKED_READ_DATA& cookedReadData);
-    void _setPromptToNewestCommand(COOKED_READ_DATA& cookedReadData);
-    til::point _deletePromptBeforeCursor(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point _moveCursorToEndOfPrompt(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point _moveCursorToStartOfPrompt(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point _moveCursorLeftByWord(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point _moveCursorLeft(COOKED_READ_DATA& cookedReadData);
-    til::point _moveCursorRightByWord(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point _moveCursorRight(COOKED_READ_DATA& cookedReadData) noexcept;
-    void _insertCtrlZ(COOKED_READ_DATA& cookedReadData) noexcept;
-    void _deleteCommandHistory(COOKED_READ_DATA& cookedReadData) noexcept;
-    void _fillPromptWithPreviousCommandFragment(COOKED_READ_DATA& cookedReadData) noexcept;
-    til::point _cycleMatchingCommandHistoryToPrompt(COOKED_READ_DATA& cookedReadData);
-
-#ifdef UNIT_TESTING
-    friend class CommandLineTests;
-    friend class CommandNumberPopupTests;
-#endif
-
 private:
+    void _deletePromptAfterCursor(COOKED_READ_DATA& cookedReadData) noexcept;
+    til::point _deleteFromRightOfCursor(COOKED_READ_DATA& cookedReadData) noexcept;
+
     std::deque<std::unique_ptr<Popup>> _popups;
     bool _isVisible;
 };
-
-void DeleteCommandLine(COOKED_READ_DATA& cookedReadData, const bool fUpdateFields);
-
-void RedrawCommandLine(COOKED_READ_DATA& cookedReadData);
 
 // Values for WriteChars(), WriteCharsLegacy() dwFlags
 #define WC_INTERACTIVE 0x01

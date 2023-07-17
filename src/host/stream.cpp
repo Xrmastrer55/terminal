@@ -18,6 +18,8 @@
 
 #pragma hdrstop
 
+#pragma warning(disable : 4100)
+
 using Microsoft::Console::Interactivity::ServiceLocator;
 
 // Routine Description:
@@ -180,93 +182,6 @@ using Microsoft::Console::Interactivity::ServiceLocator;
 }
 
 // Routine Description:
-// - This routine returns the total number of screen spaces the characters up to the specified character take up.
-til::CoordType RetrieveTotalNumberOfSpaces(const til::CoordType sOriginalCursorPositionX,
-                                           _In_reads_(ulCurrentPosition) const WCHAR* const pwchBuffer,
-                                           _In_ size_t ulCurrentPosition)
-{
-    auto XPosition = sOriginalCursorPositionX;
-    til::CoordType NumSpaces = 0;
-
-    for (size_t i = 0; i < ulCurrentPosition; i++)
-    {
-        const auto Char = pwchBuffer[i];
-
-        til::CoordType NumSpacesForChar;
-        if (Char == UNICODE_TAB)
-        {
-            NumSpacesForChar = NUMBER_OF_SPACES_IN_TAB(XPosition);
-        }
-        else if (IS_CONTROL_CHAR(Char))
-        {
-            NumSpacesForChar = 2;
-        }
-        else if (IsGlyphFullWidth(Char))
-        {
-            NumSpacesForChar = 2;
-        }
-        else
-        {
-            NumSpacesForChar = 1;
-        }
-        XPosition += NumSpacesForChar;
-        NumSpaces += NumSpacesForChar;
-    }
-
-    return NumSpaces;
-}
-
-// Routine Description:
-// - This routine returns the number of screen spaces the specified character takes up.
-til::CoordType RetrieveNumberOfSpaces(_In_ til::CoordType sOriginalCursorPositionX,
-                                      _In_reads_(ulCurrentPosition + 1) const WCHAR* const pwchBuffer,
-                                      _In_ size_t ulCurrentPosition)
-{
-    auto Char = pwchBuffer[ulCurrentPosition];
-    if (Char == UNICODE_TAB)
-    {
-        til::CoordType NumSpaces = 0;
-        auto XPosition = sOriginalCursorPositionX;
-
-        for (size_t i = 0; i <= ulCurrentPosition; i++)
-        {
-            Char = pwchBuffer[i];
-            if (Char == UNICODE_TAB)
-            {
-                NumSpaces = NUMBER_OF_SPACES_IN_TAB(XPosition);
-            }
-            else if (IS_CONTROL_CHAR(Char))
-            {
-                NumSpaces = 2;
-            }
-            else if (IsGlyphFullWidth(Char))
-            {
-                NumSpaces = 2;
-            }
-            else
-            {
-                NumSpaces = 1;
-            }
-            XPosition += NumSpaces;
-        }
-
-        return NumSpaces;
-    }
-    else if (IS_CONTROL_CHAR(Char))
-    {
-        return 2;
-    }
-    else if (IsGlyphFullWidth(Char))
-    {
-        return 2;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-// Routine Description:
 // - if we have leftover input, copy as much fits into the user's
 // buffer and return.  we may have multi line input, if a macro
 // has been defined that contains the $T character.
@@ -354,7 +269,7 @@ NT_CATCH_RETURN()
                                             std::span<char> buffer,
                                             size_t& bytesRead,
                                             DWORD& controlKeyState,
-                                            const std::string_view initialData,
+                                            const std::wstring_view initialData,
                                             const DWORD ctrlWakeupMask,
                                             INPUT_READ_HANDLE_DATA& readHandleState,
                                             const std::wstring_view exeName,
@@ -380,7 +295,7 @@ NT_CATCH_RETURN()
 
         gci.SetCookedReadData(cookedReadData.get());
         bytesRead = buffer.size_bytes(); // This parameter on the way in is the size to read, on the way out, it will be updated to what is actually read.
-        if (CONSOLE_STATUS_WAIT == cookedReadData->Read(unicode, bytesRead, controlKeyState))
+        if (!cookedReadData->Read(unicode, bytesRead, controlKeyState))
         {
             // memory will be cleaned up by wait queue
             waiter.reset(cookedReadData.release());
@@ -492,7 +407,7 @@ NT_CATCH_RETURN()
                                      std::span<char> buffer,
                                      size_t& bytesRead,
                                      ULONG& controlKeyState,
-                                     const std::string_view initialData,
+                                     const std::wstring_view initialData,
                                      const DWORD ctrlWakeupMask,
                                      INPUT_READ_HANDLE_DATA& readHandleState,
                                      const std::wstring_view exeName,
@@ -552,60 +467,29 @@ NT_CATCH_RETURN()
     CATCH_RETURN();
 }
 
-[[nodiscard]] HRESULT ApiRoutines::ReadConsoleAImpl(IConsoleInputObject& context,
-                                                    std::span<char> buffer,
-                                                    size_t& written,
-                                                    std::unique_ptr<IWaitRoutine>& waiter,
-                                                    const std::string_view initialData,
-                                                    const std::wstring_view exeName,
-                                                    INPUT_READ_HANDLE_DATA& readHandleState,
-                                                    const HANDLE clientHandle,
-                                                    const DWORD controlWakeupMask,
-                                                    DWORD& controlKeyState) noexcept
+[[nodiscard]] HRESULT ApiRoutines::ReadConsoleImpl(IConsoleInputObject& context,
+                                                   std::span<char> buffer,
+                                                   size_t& written,
+                                                   std::unique_ptr<IWaitRoutine>& waiter,
+                                                   const std::wstring_view initialData,
+                                                   const std::wstring_view exeName,
+                                                   INPUT_READ_HANDLE_DATA& readHandleState,
+                                                   const bool IsUnicode,
+                                                   const HANDLE clientHandle,
+                                                   const DWORD controlWakeupMask,
+                                                   DWORD& controlKeyState) noexcept
 {
-    try
-    {
-        return HRESULT_FROM_NT(DoReadConsole(context,
-                                             clientHandle,
-                                             buffer,
-                                             written,
-                                             controlKeyState,
-                                             initialData,
-                                             controlWakeupMask,
-                                             readHandleState,
-                                             exeName,
-                                             false,
-                                             waiter));
-    }
-    CATCH_RETURN();
-}
-
-[[nodiscard]] HRESULT ApiRoutines::ReadConsoleWImpl(IConsoleInputObject& context,
-                                                    std::span<char> buffer,
-                                                    size_t& written,
-                                                    std::unique_ptr<IWaitRoutine>& waiter,
-                                                    const std::string_view initialData,
-                                                    const std::wstring_view exeName,
-                                                    INPUT_READ_HANDLE_DATA& readHandleState,
-                                                    const HANDLE clientHandle,
-                                                    const DWORD controlWakeupMask,
-                                                    DWORD& controlKeyState) noexcept
-{
-    try
-    {
-        return HRESULT_FROM_NT(DoReadConsole(context,
-                                             clientHandle,
-                                             buffer,
-                                             written,
-                                             controlKeyState,
-                                             initialData,
-                                             controlWakeupMask,
-                                             readHandleState,
-                                             exeName,
-                                             true,
-                                             waiter));
-    }
-    CATCH_RETURN();
+    return HRESULT_FROM_NT(DoReadConsole(context,
+                                         clientHandle,
+                                         buffer,
+                                         written,
+                                         controlKeyState,
+                                         initialData,
+                                         controlWakeupMask,
+                                         readHandleState,
+                                         exeName,
+                                         IsUnicode,
+                                         waiter));
 }
 
 void UnblockWriteConsole(const DWORD dwReason)

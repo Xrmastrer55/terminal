@@ -26,7 +26,4 @@ public:
 
 protected:
     void _DrawContent() override;
-
-private:
-    void _copyToChar(COOKED_READ_DATA& cookedReadData, const std::wstring_view LastCommand, const wchar_t wch);
 };

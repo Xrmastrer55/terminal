@@ -359,7 +359,6 @@ void ApiRoutines::GetNumberOfConsoleMouseButtonsImpl(ULONG& buttons) noexcept
                 gci.GetActiveOutputBuffer().SetCursorDBMode(false);
                 if (gci.HasPendingCookedRead())
                 {
-                    gci.CookedReadData().SetInsertMode(gci.GetInsertMode());
                 }
             }
         }

@@ -8,7 +8,7 @@
 #include "../interactivity/inc/ServiceLocator.hpp"
 #include "../types/inc/convert.hpp"
 
-#include <algorithm>
+#pragma warning(disable : 4100)
 
 using namespace Microsoft::Console::Types;
 using Microsoft::Console::Interactivity::ServiceLocator;
@@ -949,46 +949,13 @@ bool Selection::_HandleMarkModeSelectionNav(const INPUT_KEY_INFO* const pInputKe
 [[nodiscard]] bool Selection::s_GetInputLineBoundaries(_Out_opt_ til::point* const pcoordInputStart, _Out_opt_ til::point* const pcoordInputEnd)
 {
     const auto& gci = ServiceLocator::LocateGlobals().getConsoleInformation();
-    const auto bufferSize = gci.GetActiveOutputBuffer().GetBufferSize();
-
-    auto& textBuffer = gci.GetActiveOutputBuffer().GetTextBuffer();
-
     const auto pendingCookedRead = gci.HasPendingCookedRead();
     const auto isVisible = CommandLine::Instance().IsVisible();
 
     // if we have no read data, we have no input line.
-    if (!pendingCookedRead || gci.CookedReadData().VisibleCharCount() == 0 || !isVisible)
+    if (!pendingCookedRead || !isVisible)
     {
         return false;
-    }
-
-    const auto& cookedRead = gci.CookedReadData();
-    const auto coordStart = cookedRead.OriginalCursorPosition();
-    auto coordEnd = cookedRead.OriginalCursorPosition();
-
-    if (coordEnd.x < 0 && coordEnd.y < 0)
-    {
-        // if the original cursor position from the input line data is invalid, then the buffer cursor position is the final position
-        coordEnd = textBuffer.GetCursor().GetPosition();
-    }
-    else
-    {
-        // otherwise, we need to add the number of characters in the input line to the original cursor position
-        bufferSize.MoveInBounds(gsl::narrow<til::CoordType>(cookedRead.VisibleCharCount()), coordEnd);
-    }
-
-    // - 1 so the coordinate is on top of the last position of the text, not one past it.
-    bufferSize.MoveInBounds(-1, coordEnd);
-
-    if (pcoordInputStart != nullptr)
-    {
-        pcoordInputStart->x = coordStart.x;
-        pcoordInputStart->y = coordStart.y;
-    }
-
-    if (pcoordInputEnd != nullptr)
-    {
-        *pcoordInputEnd = coordEnd;
     }
 
     return true;

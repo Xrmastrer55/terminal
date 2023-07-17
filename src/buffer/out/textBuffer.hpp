@@ -100,6 +100,7 @@ public:
     static void ConsumeGrapheme(std::wstring_view& chars) noexcept;
     void Write(til::CoordType row, const TextAttribute& attributes, RowWriteState& state);
     void FillRect(const til::rect& rect, const std::wstring_view& fill, const TextAttribute& attributes);
+    void FillRange(til::point begin, til::point end, const std::wstring_view& fill, const TextAttribute& attributes);
 
     OutputCellIterator Write(const OutputCellIterator givenIt);
 

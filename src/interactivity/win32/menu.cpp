@@ -557,7 +557,6 @@ void Menu::s_PropertiesUpdate(PCONSOLE_STATE_INFO pStateInfo)
         gci.SetInsertMode(pStateInfo->InsertMode != FALSE);
         if (gci.HasPendingCookedRead())
         {
-            gci.CookedReadData().SetInsertMode(gci.GetInsertMode());
         }
     }
 

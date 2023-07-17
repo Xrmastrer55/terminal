@@ -35,7 +35,7 @@ Arguments:
 
 Return Value:
 --*/
-void AdjustCursorPosition(SCREEN_INFORMATION& screenInfo, _In_ til::point coordCursor, const BOOL fKeepCursorVisible, _Inout_opt_ til::CoordType* psScrollY);
+void AdjustCursorPosition(SCREEN_INFORMATION& screenInfo, DWORD flags, _In_ til::point coordCursor, _Inout_opt_ til::CoordType* psScrollY);
 
 /*++
 Routine Description:
@@ -63,30 +63,11 @@ Note:
     This routine does not process tabs and backspace properly.  That code
     will be implemented as part of the line editing services.
 --*/
-[[nodiscard]] NTSTATUS WriteCharsLegacy(SCREEN_INFORMATION& screenInfo,
-                                        _In_range_(<=, pwchBuffer) const wchar_t* const pwchBufferBackupLimit,
-                                        _In_ const wchar_t* pwchBuffer,
-                                        _In_reads_bytes_(*pcb) const wchar_t* pwchRealUnicode,
-                                        _Inout_ size_t* const pcb,
-                                        _Out_opt_ size_t* const pcSpaces,
-                                        const til::CoordType sOriginalXPosition,
-                                        const DWORD dwFlags,
-                                        _Inout_opt_ til::CoordType* const psScrollY);
-
-// The new entry point for WriteChars to act as an intercept in case we place a Virtual Terminal processor in the way.
-[[nodiscard]] NTSTATUS WriteChars(SCREEN_INFORMATION& screenInfo,
-                                  _In_range_(<=, pwchBuffer) const wchar_t* const pwchBufferBackupLimit,
-                                  _In_ const wchar_t* pwchBuffer,
-                                  _In_reads_bytes_(*pcb) const wchar_t* pwchRealUnicode,
-                                  _Inout_ size_t* const pcb,
-                                  _Out_opt_ size_t* const pcSpaces,
-                                  const til::CoordType sOriginalXPosition,
-                                  const DWORD dwFlags,
-                                  _Inout_opt_ til::CoordType* const psScrollY);
+til::CoordType WriteCharsLegacy(SCREEN_INFORMATION& screenInfo, DWORD flags, const std::wstring_view& str);
 
 // NOTE: console lock must be held when calling this routine
 // String has been translated to unicode at this point.
-[[nodiscard]] NTSTATUS DoWriteConsole(_In_reads_bytes_(*pcbBuffer) PCWCHAR pwchBuffer,
+[[nodiscard]] NTSTATUS DoWriteConsole(_In_reads_bytes_(pcbBuffer) const wchar_t* pwchBuffer,
                                       _Inout_ size_t* const pcbBuffer,
                                       SCREEN_INFORMATION& screenInfo,
                                       bool requiresVtQuirk,

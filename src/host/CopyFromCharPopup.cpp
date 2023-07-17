@@ -38,22 +38,6 @@ CopyFromCharPopup::CopyFromCharPopup(SCREEN_INFORMATION& screenInfo) :
         return CONSOLE_STATUS_WAIT_NO_BLOCK;
     }
 
-    const auto span = cookedReadData.SpanAtPointer();
-    const auto foundLocation = std::find(std::next(span.begin()), span.end(), Char);
-    if (foundLocation == span.end())
-    {
-        // char not found, delete everything to the right of the cursor
-        CommandLine::Instance().DeletePromptAfterCursor(cookedReadData);
-    }
-    else
-    {
-        // char was found, delete everything between the cursor and it
-        const auto difference = std::distance(span.begin(), foundLocation);
-        for (unsigned int i = 0; i < gsl::narrow<unsigned int>(difference); ++i)
-        {
-            CommandLine::Instance().DeleteFromRightOfCursor(cookedReadData);
-        }
-    }
     return CONSOLE_STATUS_WAIT_NO_BLOCK;
 }
 

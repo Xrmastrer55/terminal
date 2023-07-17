@@ -445,7 +445,7 @@ void TextBuffer::ConsumeGrapheme(std::wstring_view& chars) noexcept
 {
     // This function is supposed to mirror the behavior of ROW::Write, when it reads characters off of `chars`.
     // (I know that a UTF-16 code point is not a grapheme, but that's what we're working towards.)
-    chars = til::utf16_pop(chars);
+    chars = chars.substr(til::utf16_iterate_next(chars, 0));
 }
 
 // This function is intended for writing regular "lines" of text as it'll set the wrap flag on the given row.

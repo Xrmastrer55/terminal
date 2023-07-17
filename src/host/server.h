@@ -167,8 +167,6 @@ private:
     MidiAudio _midiAudio;
 };
 
-#define ConsoleLocked() (ServiceLocator::LocateGlobals()->getConsoleInformation()->ConsoleLock.OwningThread == NtCurrentTeb()->ClientId.UniqueThread)
-
 #define CONSOLE_STATUS_WAIT 0xC0030001
 #define CONSOLE_STATUS_READ_COMPLETE 0xC0030002
 #define CONSOLE_STATUS_WAIT_NO_BLOCK 0xC0030003
